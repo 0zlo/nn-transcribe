@@ -1,0 +1,7 @@
+build/
+third_party/
+assets/ModelData/
+.DS_Store
+*.swp
+*.user
+*.vcxproj*
