@@ -32,6 +32,7 @@ tar -xzf "${tmp}/ort.tgz" -C "${tmp}"
 
 mv "${tmp}/onnxruntime-linux-${ARCH}-${ORT_VER}/include" "${DEST}/include"
 mkdir -p "${DEST}/lib"
-mv "${tmp}/onnxruntime-linux-${ARCH}-${ORT_VER}/lib/libonnxruntime.so" "${DEST}/lib/libonnxruntime.so"
+# Copy the real shared library (and any versioned symlinks) to avoid broken links.
+cp -a "${tmp}/onnxruntime-linux-${ARCH}-${ORT_VER}/lib/libonnxruntime.so"* "${DEST}/lib/"
 
 echo "[+] Installed to ${DEST}"

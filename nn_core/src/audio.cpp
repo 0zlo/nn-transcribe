@@ -82,11 +82,11 @@ AudioMono loadAudioMonoResampled(const std::string& path, int targetSampleRate)
 
     // One-shot process (miniaudio generally consumes all if enough output space)
     if (ma_resampler_process_pcm_frames(&res, mono.data(), &inFrames, out.data(), &outFrames) != MA_SUCCESS) {
-        ma_resampler_uninit(&res);
+        ma_resampler_uninit(&res, nullptr);
         throw std::runtime_error("miniaudio: resample failed");
     }
 
-    ma_resampler_uninit(&res);
+    ma_resampler_uninit(&res, nullptr);
     out.resize((size_t)outFrames);
 
     return AudioMono{ targetSampleRate, std::move(out) };

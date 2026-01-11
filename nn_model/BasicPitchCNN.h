@@ -54,7 +54,9 @@ private:
     RTNeural::ModelT<float,
                      NUM_FREQ_IN * NUM_HARMONICS,
                      NUM_FREQ_IN,
-                     RTNeural::Conv2DT<float, 8, 1, NUM_FREQ_IN, 5, 5, 1, 3, false>,
+                     RTNeural::Conv2DT<float, 8, 8, NUM_FREQ_IN, 3, 39, 1, 1, false>,
+                     RTNeural::ReLuActivationT<float, 8 * NUM_FREQ_IN>,
+                     RTNeural::Conv2DT<float, 8, 1, NUM_FREQ_IN, 5, 5, 1, 1, false>,
                      RTNeural::SigmoidActivationT<float, NUM_FREQ_IN>>
         mCNNContour;
 

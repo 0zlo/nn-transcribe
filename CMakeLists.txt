@@ -15,6 +15,7 @@ if (NN_MOSTLY_STATIC)
 endif()
 
 include(FetchContent)
+find_package(Threads REQUIRED)
 
 # --- nlohmann/json (RTNeural parseJson uses it) ---
 FetchContent_Declare(
@@ -28,7 +29,7 @@ FetchContent_MakeAvailable(nlohmann_json)
 FetchContent_Declare(
   RTNeural
   GIT_REPOSITORY https://github.com/jatinchowdhury18/RTNeural.git
-  GIT_TAG        master
+  GIT_TAG        main
 )
 FetchContent_MakeAvailable(RTNeural)
 
@@ -48,12 +49,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(midifile_src)
 
-add_library(midifile STATIC
-  ${midifile_src_SOURCE_DIR}/src/MidiEvent.cpp
-  ${midifile_src_SOURCE_DIR}/src/MidiEventList.cpp
-  ${midifile_src_SOURCE_DIR}/src/MidiFile.cpp
-  ${midifile_src_SOURCE_DIR}/src/MidiMessage.cpp
-)
+if (NOT TARGET midifile)
+  add_library(midifile STATIC
+    ${midifile_src_SOURCE_DIR}/src/MidiEvent.cpp
+    ${midifile_src_SOURCE_DIR}/src/MidiEventList.cpp
+    ${midifile_src_SOURCE_DIR}/src/MidiFile.cpp
+    ${midifile_src_SOURCE_DIR}/src/MidiMessage.cpp
+  )
+endif()
 target_include_directories(midifile PUBLIC ${midifile_src_SOURCE_DIR}/include)
 
 # --- ONNX Runtime imported target ---
@@ -93,6 +96,7 @@ add_library(nn_core STATIC
 
 target_include_directories(nn_core PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/nn_core/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/nn_model
   ${miniaudio_SOURCE_DIR}
   ${midifile_src_SOURCE_DIR}/include
 )
@@ -100,6 +104,8 @@ target_include_directories(nn_core PUBLIC
 target_link_libraries(nn_core PUBLIC
   midifile
   nlohmann_json::nlohmann_json
+  ${CMAKE_DL_LIBS}
+  Threads::Threads
 )
 
 # --- app ---
