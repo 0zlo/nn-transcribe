@@ -21,7 +21,6 @@ void writeMidiFromEvents(const std::vector<Notes::Event>& events,
     smf::MidiFile midi;
     midi.absoluteTicks();
     midi.setTicksPerQuarterNote(ppq);
-    midi.addTrack(1);
 
     const int track = 0;
     const int channel = 0;

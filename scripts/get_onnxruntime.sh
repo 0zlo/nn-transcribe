@@ -8,16 +8,39 @@ set -euo pipefail
 #
 # Result:
 #   third_party/onnxruntime/include/...
-#   third_party/onnxruntime/lib/libonnxruntime.so
+#   third_party/onnxruntime/lib/libonnxruntime.(so|dylib)
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TP_DIR="${ROOT_DIR}/third_party"
 DEST="${TP_DIR}/onnxruntime"
 
 ORT_VER="${1:-${ORT_VER:-1.17.3}}"
-ARCH="x64"
 
-URL="https://github.com/microsoft/onnxruntime/releases/download/v${ORT_VER}/onnxruntime-linux-${ARCH}-${ORT_VER}.tgz"
+case "$(uname -s)" in
+  Darwin)
+    PLATFORM="osx"
+    case "$(uname -m)" in
+      arm64) ARCH="arm64" ;;
+      x86_64) ARCH="x86_64" ;;
+      *) echo "[!] Unsupported macOS architecture: $(uname -m)" >&2; exit 1 ;;
+    esac
+    ;;
+  Linux)
+    PLATFORM="linux"
+    case "$(uname -m)" in
+      x86_64) ARCH="x64" ;;
+      aarch64|arm64) ARCH="aarch64" ;;
+      *) echo "[!] Unsupported Linux architecture: $(uname -m)" >&2; exit 1 ;;
+    esac
+    ;;
+  *)
+    echo "[!] Unsupported OS: $(uname -s)" >&2
+    exit 1
+    ;;
+esac
+
+PACKAGE="onnxruntime-${PLATFORM}-${ARCH}-${ORT_VER}"
+URL="https://github.com/microsoft/onnxruntime/releases/download/v${ORT_VER}/${PACKAGE}.tgz"
 
 mkdir -p "${TP_DIR}"
 rm -rf "${DEST}"
@@ -30,8 +53,8 @@ tmp="$(mktemp -d)"
 curl -L "${URL}" -o "${tmp}/ort.tgz"
 tar -xzf "${tmp}/ort.tgz" -C "${tmp}"
 
-mv "${tmp}/onnxruntime-linux-${ARCH}-${ORT_VER}/include" "${DEST}/include"
+mv "${tmp}/${PACKAGE}/include" "${DEST}/include"
 mkdir -p "${DEST}/lib"
-mv "${tmp}/onnxruntime-linux-${ARCH}-${ORT_VER}/lib/libonnxruntime.so" "${DEST}/lib/libonnxruntime.so"
+find "${tmp}/${PACKAGE}/lib" -maxdepth 1 -name 'libonnxruntime*' -exec cp -R {} "${DEST}/lib/" \;
 
 echo "[+] Installed to ${DEST}"

@@ -68,7 +68,7 @@ void BasicPitch::transcribeToMIDI(float* inAudio, int inNumSamples)
 
     mBasicPitchCNN.reset();
 
-    const size_t num_lh_frames = BasicPitchCNN::getNumFramesLookahead();
+    const size_t num_lh_frames = mBasicPitchCNN.getNumFramesLookahead();
 
     std::vector<float> zero_stacked_cqt(NUM_HARMONICS * NUM_FREQ_IN, 0.0f);
 

@@ -4,17 +4,22 @@ project(nn_transcribe LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Build our deps static; ONNX Runtime will be shared (.so) and bundled next to exe.
+# Build our deps static where the platform supports it; ONNX Runtime stays shared
+# and is bundled next to the executable.
 set(BUILD_SHARED_LIBS OFF)
 
 option(NN_MOSTLY_STATIC "Static link libstdc++/libgcc; deps static; ORT shared" ON)
 option(NN_FULL_STATIC "Attempt fully static link (usually painful on glibc)" OFF)
 
-if (NN_MOSTLY_STATIC)
+if (NN_MOSTLY_STATIC AND NOT APPLE)
   add_link_options(-static-libstdc++ -static-libgcc)
+elseif (NN_MOSTLY_STATIC AND APPLE)
+  message(STATUS "NN_MOSTLY_STATIC is ignored on Apple platforms")
 endif()
 
 include(FetchContent)
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE BOOL
+    "Do not contact remotes to update already-populated FetchContent dependencies")
 
 # --- nlohmann/json (RTNeural parseJson uses it) ---
 FetchContent_Declare(
@@ -28,7 +33,8 @@ FetchContent_MakeAvailable(nlohmann_json)
 FetchContent_Declare(
   RTNeural
   GIT_REPOSITORY https://github.com/jatinchowdhury18/RTNeural.git
-  GIT_TAG        master
+  GIT_TAG        main
+  SOURCE_SUBDIR  cmake/skip-add-subdirectory
 )
 FetchContent_MakeAvailable(RTNeural)
 
@@ -37,6 +43,7 @@ FetchContent_Declare(
   miniaudio
   GIT_REPOSITORY https://github.com/mackron/miniaudio.git
   GIT_TAG        master
+  SOURCE_SUBDIR  cmake/skip-add-subdirectory
 )
 FetchContent_MakeAvailable(miniaudio)
 
@@ -45,10 +52,12 @@ FetchContent_Declare(
   midifile_src
   GIT_REPOSITORY https://github.com/craigsapp/midifile.git
   GIT_TAG        master
+  SOURCE_SUBDIR  cmake/skip-add-subdirectory
 )
 FetchContent_MakeAvailable(midifile_src)
 
 add_library(midifile STATIC
+  ${midifile_src_SOURCE_DIR}/src/Binasc.cpp
   ${midifile_src_SOURCE_DIR}/src/MidiEvent.cpp
   ${midifile_src_SOURCE_DIR}/src/MidiEventList.cpp
   ${midifile_src_SOURCE_DIR}/src/MidiFile.cpp
@@ -71,7 +80,10 @@ add_library(nn_model STATIC
 
 target_include_directories(nn_model PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/nn_model
-  ${RTNeural_SOURCE_DIR}
+)
+
+target_include_directories(nn_model SYSTEM PUBLIC
+  ${rtneural_SOURCE_DIR}
 )
 
 target_link_libraries(nn_model PUBLIC
@@ -82,6 +94,8 @@ target_link_libraries(nn_model PUBLIC
 # Force-disable JUCE debug audio code paths
 target_compile_definitions(nn_model PUBLIC
   SAVE_DOWNSAMPLED_AUDIO=0
+  RTNEURAL_DEFAULT_ALIGNMENT=16
+  RTNEURAL_USE_STL=1
 )
 
 # --- nn_core (audio decode/resample + midi writer) ---
@@ -93,6 +107,7 @@ add_library(nn_core STATIC
 
 target_include_directories(nn_core PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/nn_core/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/nn_model
   ${miniaudio_SOURCE_DIR}
   ${midifile_src_SOURCE_DIR}/include
 )
@@ -110,5 +125,5 @@ if (NN_FULL_STATIC)
   target_link_options(nn_transcribe PRIVATE -static)
 endif()
 
-# Bundle ONNX Runtime .so next to executable & set rpath so it finds it.
+# Bundle ONNX Runtime next to executable & set rpath so it finds it.
 nn_bundle_onnxruntime(nn_transcribe)

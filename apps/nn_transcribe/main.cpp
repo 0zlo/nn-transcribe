@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -37,6 +38,11 @@ static bool getArg(int& i, int argc, char** argv, std::string& out)
 
 int main(int argc, char** argv)
 {
+    if (argc == 2 && (std::string(argv[1]) == "--help" || std::string(argv[1]) == "-h")) {
+        usage();
+        return 0;
+    }
+
     if (argc < 3) {
         usage();
         return 1;
