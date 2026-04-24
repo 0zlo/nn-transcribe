@@ -6,6 +6,8 @@ This repo wraps the NeuralNote transcription core (Basic Pitch style) into a sta
 - miniaudio for decode + resample to 22050 Hz mono
 - midifile for MIDI output
 
+Usage docs live in [`docs/USAGE.md`](docs/USAGE.md).
+
 ## Requirements
 Ubuntu 20.04+ (WSL is fine), gcc, cmake, ninja, curl.
 

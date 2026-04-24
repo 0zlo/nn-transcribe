@@ -12,3 +12,4 @@ cmake --build "${BUILD_DIR}"
 echo
 echo "[+] Built:"
 echo "    ${BUILD_DIR}/nn_transcribe"
+echo "    ${BUILD_DIR}/nn_midi_clean"

@@ -121,6 +121,9 @@ target_link_libraries(nn_core PUBLIC
 add_executable(nn_transcribe apps/nn_transcribe/main.cpp)
 target_link_libraries(nn_transcribe PRIVATE nn_model nn_core)
 
+add_executable(nn_midi_clean apps/nn_midi_clean/main.cpp)
+target_link_libraries(nn_midi_clean PRIVATE midifile)
+
 if (NN_FULL_STATIC)
   target_link_options(nn_transcribe PRIVATE -static)
 endif()
